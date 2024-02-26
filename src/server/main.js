@@ -1,6 +1,8 @@
 import express from "express";
 import ViteExpress from "vite-express";
 import { db } from "./config/database.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 // Create Express app
 const app = express();
@@ -16,6 +18,31 @@ app.get("/api/employees", (req, res) => {
   });
 });
 
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+  const query = `SELECT * FROM employees WHERE email =?`;
+  db.query(query, [email], async (err, data) => {
+    if (err) throw err;
+    if (data.length === 0) {
+      return res.status(401).json({ msg: "Invalid email or password" });
+    }
+    const user = data[0];
+    if (!user.password) {
+      return res.status(401).json({ msg: "Invalid email or password" });
+    }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ msg: "Invalid email or password" });
+    }
+    const accessToken = jwt.sign({ email: user.email }, "secret");
+    return res.status(200).json({
+      name: user.firstName + " " + user.lastName,
+      email: user.email,
+      token: accessToken,
+    });
+  });
+});
+
 app.post("/api/register", async (req, res) => {
   const {
     firstName,
@@ -26,6 +53,7 @@ app.post("/api/register", async (req, res) => {
     designation,
     department,
     gender,
+    password,
   } = req.body;
 
   const userWithEmail = await getByEmail(email);
@@ -37,7 +65,8 @@ app.post("/api/register", async (req, res) => {
     return res.status(400).json({ msg: "Phone already exists" });
   }
 
-  const query = `INSERT INTO employees (firstName, lastName, address, contact_number, email, designation, department, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  const query = `INSERT INTO employees (firstName, lastName, address, contact_number, email, designation, department, gender,password) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
+  const hashPassword = await bcrypt.hash(password, 10);
   const values = [
     firstName,
     lastName,
@@ -47,6 +76,7 @@ app.post("/api/register", async (req, res) => {
     designation,
     department,
     gender,
+    hashPassword,
   ];
   db.query(query, [...values], (err, data) => {
     if (err) throw err;
@@ -106,6 +136,7 @@ function createTable() {
       email VARCHAR(255) NOT NULL,
       designation VARCHAR(255) NOT NULL,
       department VARCHAR(255) NOT NULL,
+      password VARCHAR(255) NOT NULL,
       gender VARCHAR(1) NOT NULL
     )
   `;
