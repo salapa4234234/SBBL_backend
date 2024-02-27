@@ -8,9 +8,46 @@ import bcrypt from "bcrypt";
 const app = express();
 app.use(express.json());
 
+//middeware
+
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(403).json({ msg: "Token is required" });
+  }
+  jwt.verify(token, "secret", (err, decoded) => {
+    if (err) {
+      return res.status(500).json({ msg: "Token is not valid" });
+    }
+    req.user = decoded;
+    next();
+  });
+}
+
 // Define a route
 
-app.get("/api/employees", (req, res) => {
+app.get("/api/employees/:id", verifyToken, (req, res) => {
+  const id = req.params.id;
+  const query = `SELECT * FROM employees WHERE id=?`;
+  db.query(query, [id], (err, data) => {
+    if (err) throw err;
+    return res.status(200).json(data);
+  });
+});
+
+app.get("/api/employees/:name", verifyToken, (req, res) => {
+  const name = req.params.name;
+  const query = `SELECT * FROM employees WHERE firstName = ?`;
+  db.query(query, [name], (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ msg: "Error fetching employees" });
+    }
+    return res.status(200).json(data);
+  });
+});
+
+app.get("/api/employees", verifyToken, (req, res) => {
   const query = `SELECT * FROM employees`;
   db.query(query, (err, data) => {
     if (err) throw err;
