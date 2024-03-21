@@ -98,11 +98,11 @@ app.post("/api/register", async (req, res) => {
 
   const userWithEmail = await getByEmail(email);
   if (userWithEmail) {
-    return res.status(400).json({ msg: "Email already exists" });
+    return res.status(201).json({ msg: "Email already exists" });
   }
   const userWithPhone = await getByPhone(contact_number);
   if (userWithPhone) {
-    return res.status(400).json({ msg: "Phone already exists" });
+    return res.status(201).json({ msg: "Phone already exists" });
   }
 
   const query = `INSERT INTO employees (firstName, lastName, address, contact_number, email, designation, department, gender,password) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
@@ -122,7 +122,7 @@ app.post("/api/register", async (req, res) => {
     if (err) throw err;
     return res
       .status(200)
-      .json({ msg: "Successfully registered ", data: data });
+      .json({ msg: "Successfully registered ", data: data, status: 200 });
   });
 });
 function getByEmail(email) {
