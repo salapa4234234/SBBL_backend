@@ -78,6 +78,8 @@ app.post("/api/login", (req, res) => {
       name: user.firstName + " " + user.lastName,
       email: user.email,
       token: accessToken,
+      id: user.id,
+      gender: user.gender,
       status: 200,
     });
   });
