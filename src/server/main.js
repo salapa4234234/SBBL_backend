@@ -56,6 +56,47 @@ app.get("/api/employees", verifyToken, (req, res) => {
     res.json(data);
   });
 });
+app.patch("/api/update_profile/:id", verifyToken, async (req, res) => {
+  const userId = req.params.id;
+  const {
+    firstName,
+    lastName,
+    address,
+    contact_number,
+    designation,
+    department,
+    gender,
+  } = req.body;
+
+  // const userWithPhone = await getByPhone(contact_number);
+  // if (userWithPhone && userWithPhone.id !== userId) {
+  //   return res.status(201).json({ msg: "Phone already exists" });
+  // }
+
+  const fieldsToUpdate = {};
+  if (firstName) fieldsToUpdate.firstName = firstName;
+  if (lastName) fieldsToUpdate.lastName = lastName;
+  if (address) fieldsToUpdate.address = address;
+  if (contact_number) fieldsToUpdate.contact_number = contact_number;
+  if (designation) fieldsToUpdate.designation = designation;
+  if (department) fieldsToUpdate.department = department;
+  if (gender) fieldsToUpdate.gender = gender;
+
+  const query = `
+    UPDATE employees 
+    SET ?
+    WHERE id=?
+  `;
+  const values = [fieldsToUpdate, userId];
+
+  db.query(query, values, (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ msg: "Error updating profile" });
+    }
+    return res.status(200).json({ msg: "Successfully updated!", status: 200 });
+  });
+});
 
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
