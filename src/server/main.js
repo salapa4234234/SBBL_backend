@@ -56,6 +56,57 @@ app.get("/api/employees", verifyToken, (req, res) => {
     res.json(data);
   });
 });
+
+app.patch("/api/update_password/:id", verifyToken, async (req, res) => {
+  const userId = req.params.id;
+  const { newPassword } = req.body;
+
+  // Retrieve the user's current password from the database
+  const query = `SELECT password FROM employees WHERE id=?`;
+  db.query(query, [userId], async (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ msg: "Error updating password" });
+    }
+
+    // Check if user exists
+    if (data.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const currentPassword = data[0].password;
+
+    try {
+      // Ensure newPassword is provided
+      if (!newPassword) {
+        return res.status(400).json({ msg: "New password is required" });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update the password in the database
+      const updateQuery = `
+        UPDATE employees 
+        SET password = ?
+        WHERE id = ?
+      `;
+      db.query(updateQuery, [hashedPassword, userId], (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ msg: "Error updating password" });
+        }
+        return res
+          .status(200)
+          .json({ msg: "Password updated successfully", status: 200 });
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ msg: "Error hashing password" });
+    }
+  });
+});
+
 app.patch("/api/update_profile/:id", verifyToken, async (req, res) => {
   const userId = req.params.id;
   const {
