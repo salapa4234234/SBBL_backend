@@ -50,11 +50,34 @@ app.get("/api/employees/:name", verifyToken, (req, res) => {
 });
 
 app.get("/api/employees", verifyToken, (req, res) => {
-  const query = `SELECT * FROM employees`;
-  db.query(query, (err, data) => {
-    if (err) throw err;
-    res.json(data);
-  });
+  const { query } = req.query;
+
+  if (query) {
+    const searchQuery = `
+      SELECT *, CONCAT(firstName, ' ', lastName) AS fullName 
+      FROM employees 
+      WHERE CONCAT(firstName, ' ', lastName) LIKE ?
+    `;
+    const searchValue = `%${query}%`;
+
+    db.query(searchQuery, [searchValue], (err, searchData) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ msg: "Error searching for employees" });
+      }
+
+      return res.status(200).json({ data: searchData });
+    });
+  } else {
+    const queryAll = `SELECT *, CONCAT(firstName, ' ', lastName) AS fullName FROM employees`;
+    db.query(queryAll, (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ msg: "Error fetching employees" });
+      }
+      return res.status(200).json({ data });
+    });
+  }
 });
 
 app.patch("/api/update_password/:id", verifyToken, async (req, res) => {
