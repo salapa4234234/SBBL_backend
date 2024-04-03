@@ -185,6 +185,11 @@ app.post("/api/login", (req, res) => {
     if (!user.password) {
       return res.status(201).json({ message: "Invalid email or password" });
     }
+    if (!user.verified) {
+      return res
+        .status(201)
+        .json({ message: "Please verify your email first" });
+    }
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res.status(201).json({ message: "Invalid email or password" });
@@ -197,6 +202,37 @@ app.post("/api/login", (req, res) => {
       id: user.id,
       gender: user.gender,
       status: 200,
+    });
+  });
+});
+app.patch("/api/email_varified/:email/varify/:token", async (req, res) => {
+  const { email, token } = req.params;
+
+  // Check if the provided email and token match any record in the database
+  const query = `SELECT * FROM employees WHERE email = ? AND token = ?`;
+  db.query(query, [email, token], async (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ msg: "Error verifying email" });
+    }
+
+    // If there's no match, return an error
+    if (data.length === 0) {
+      return res.status(404).json({ msg: "Invalid email or token" });
+    }
+
+    // Update the verified field to true
+    const updateQuery = `UPDATE employees SET verified = TRUE WHERE email = ?`;
+    db.query(updateQuery, [email], (err, result) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .json({ msg: "Error updating verification status" });
+      }
+      return res
+        .status(200)
+        .json({ msg: "Email verified successfully", status: 200 });
     });
   });
 });
@@ -241,7 +277,7 @@ app.post("/api/register", async (req, res) => {
     let subject = "Email verification !";
     const randomString = "kdjfalksd";
     let content = `
-    <p>Hi ${firstName},please <a href="http://localhost:3000/email-verification?token=${randomString}">Verify</a> your email}
+    <p>Hi ${firstName},please <a href="http://localhost:5173/email-verification/email=${email}/varify/token=${randomString}">Verify</a> your email}</p>
     `;
     sendMail(email, subject, content);
     const query = "UPDATE employees SET token=? WHERE email=?";
@@ -310,7 +346,8 @@ function createTable() {
       department VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL,
       gender VARCHAR(1) NOT NULL,
-      token VARCHAR(255)
+      token VARCHAR(255),
+      verified BOOLEAN DEFAULT FALSE
     )
   `;
 
