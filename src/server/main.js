@@ -4,6 +4,7 @@ import { db } from "./config/database.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import cors from "cors";
+import { sendMail } from "./helpers/mailSend.js";
 
 // Create Express app
 const app = express();
@@ -237,6 +238,20 @@ app.post("/api/register", async (req, res) => {
   ];
   db.query(query, [...values], (err, data) => {
     if (err) throw err;
+    let subject = "Email verification !";
+    const randomString = "kdjfalksd";
+    let content = `
+    <p>Hi ${firstName},please <a href="http://localhost:3000/email-verification?token=${randomString}">Verify</a> your email}
+    `;
+    sendMail(email, subject, content);
+    const query = "UPDATE employees SET token=? WHERE email=?";
+    const updateValues = [randomString, email];
+    db.query(query, [...updateValues], (err, data) => {
+      if (err) {
+        console.log("Error", err);
+      }
+    });
+
     return res
       .status(200)
       .json({ msg: "Successfully registered ", data: data, status: 200 });
@@ -294,7 +309,8 @@ function createTable() {
       designation VARCHAR(255) NOT NULL,
       department VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL,
-      gender VARCHAR(1) NOT NULL
+      gender VARCHAR(1) NOT NULL,
+      token VARCHAR(255)
     )
   `;
 
