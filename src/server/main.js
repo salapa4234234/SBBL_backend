@@ -80,6 +80,72 @@ app.get("/api/employees", verifyToken, (req, res) => {
     });
   }
 });
+app.patch("/api/forget_password", (req, res) => {
+  const email = req.body.email;
+  const query = `SELECT password FROM employees WHERE email=?`;
+  const values = [email];
+  db.query(query, [values], (err, data) => {
+    if (err) throw err;
+    if (data.length === 0) {
+      return res.json({ message: "This email has not been registered" });
+    }
+    if (err) throw err;
+    let subject = "Forget Password !";
+    const randomString = "kdjfalksd";
+    let content = `
+    <p>Please <a href="http://localhost:5173/forget-password/email=${email}">Forget Passowrd</a></p>
+    `;
+    sendMail(email, subject, content);
+    return res
+      .status(200)
+      .json({ message: "Emil has been sent successfully", status: 200 });
+  });
+});
+app.patch("/api/forget_password/:email", (req, res) => {
+  const email = req.params.email;
+  const { newPassword } = req.body;
+  const query = `SELECT password FROM employees WHERE email=?`;
+  db.query(query, [email], async (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ msg: "Error updating password" });
+    }
+
+    // Check if user exists
+    if (data.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    try {
+      // Ensure newPassword is provided
+      if (!newPassword) {
+        return res.status(400).json({ msg: "New password is required" });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update the password in the database
+      const updateQuery = `
+        UPDATE employees 
+        SET password = ?
+        WHERE email = ?
+      `;
+      db.query(updateQuery, [hashedPassword, email], (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ msg: "Error updating password" });
+        }
+        return res
+          .status(200)
+          .json({ msg: "Password updated successfully", status: 200 });
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ msg: "Error hashing password" });
+    }
+  });
+});
 
 app.patch("/api/update_password/:id", verifyToken, async (req, res) => {
   const userId = req.params.id;
@@ -288,9 +354,11 @@ app.post("/api/register", async (req, res) => {
       }
     });
 
-    return res
-      .status(200)
-      .json({ msg: "Successfully registered ", data: data, status: 200 });
+    return res.status(200).json({
+      msg: "Email has been sent on your email check it out ",
+      data: data,
+      status: 200,
+    });
   });
 });
 function getByEmail(email) {
