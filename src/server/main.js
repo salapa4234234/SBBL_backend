@@ -16,11 +16,11 @@ app.use(cors());
 function verifyToken(req, res, next) {
   const token = req.headers.authorization;
   if (!token) {
-    return res.status(403).json({ msg: "Token is required" });
+    return res.status(403).json({ msg: "Token is required !" });
   }
   jwt.verify(token, "secret", (err, decoded) => {
     if (err) {
-      return res.status(500).json({ msg: "Token is not valid" });
+      return res.status(500).json({ msg: "Token is not valid !" });
     }
     req.user = decoded;
     next();
@@ -98,7 +98,7 @@ app.patch("/api/forget_password", (req, res) => {
     sendMail(email, subject, content);
     return res
       .status(200)
-      .json({ message: "Emil has been sent successfully", status: 200 });
+      .json({ message: "Email has been sent successfully !", status: 200 });
   });
 });
 app.patch("/api/forget_password/:email", (req, res) => {
@@ -108,18 +108,18 @@ app.patch("/api/forget_password/:email", (req, res) => {
   db.query(query, [email], async (err, data) => {
     if (err) {
       console.error(err);
-      return res.status(500).json({ msg: "Error updating password" });
+      return res.status(500).json({ msg: "Error updating password !" });
     }
 
     // Check if user exists
     if (data.length === 0) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ msg: "User not found !" });
     }
 
     try {
       // Ensure newPassword is provided
       if (!newPassword) {
-        return res.status(400).json({ msg: "New password is required" });
+        return res.status(400).json({ msg: "New password is required !" });
       }
 
       // Hash the new password
@@ -134,15 +134,15 @@ app.patch("/api/forget_password/:email", (req, res) => {
       db.query(updateQuery, [hashedPassword, email], (err, result) => {
         if (err) {
           console.error(err);
-          return res.status(500).json({ msg: "Error updating password" });
+          return res.status(500).json({ msg: "Error updating password !" });
         }
         return res
           .status(200)
-          .json({ msg: "Password updated successfully", status: 200 });
+          .json({ msg: "Password updated successfully !", status: 200 });
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ msg: "Error hashing password" });
+      return res.status(500).json({ msg: "Error hashing password !" });
     }
   });
 });
@@ -156,12 +156,12 @@ app.patch("/api/update_password/:id", verifyToken, async (req, res) => {
   db.query(query, [userId], async (err, data) => {
     if (err) {
       console.error(err);
-      return res.status(500).json({ msg: "Error updating password" });
+      return res.status(500).json({ msg: "Error updating password !" });
     }
 
     // Check if user exists
     if (data.length === 0) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ msg: "User not found !" });
     }
 
     const currentPassword = data[0].password;
@@ -169,7 +169,7 @@ app.patch("/api/update_password/:id", verifyToken, async (req, res) => {
     try {
       // Ensure newPassword is provided
       if (!newPassword) {
-        return res.status(400).json({ msg: "New password is required" });
+        return res.status(400).json({ msg: "New password is required !" });
       }
 
       // Hash the new password
@@ -184,15 +184,15 @@ app.patch("/api/update_password/:id", verifyToken, async (req, res) => {
       db.query(updateQuery, [hashedPassword, userId], (err, result) => {
         if (err) {
           console.error(err);
-          return res.status(500).json({ msg: "Error updating password" });
+          return res.status(500).json({ msg: "Error updating password !" });
         }
         return res
           .status(200)
-          .json({ msg: "Password updated successfully", status: 200 });
+          .json({ msg: "Password updated successfully !", status: 200 });
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ msg: "Error hashing password" });
+      return res.status(500).json({ msg: "Error hashing password !" });
     }
   });
 });
@@ -233,9 +233,9 @@ app.patch("/api/update_profile/:id", verifyToken, async (req, res) => {
   db.query(query, values, (err, data) => {
     if (err) {
       console.error(err);
-      return res.status(500).json({ msg: "Error updating profile" });
+      return res.status(500).json({ msg: "Error updating profile !" });
     }
-    return res.status(200).json({ msg: "Successfully updated!", status: 200 });
+    return res.status(200).json({ msg: "Successfully updated !", status: 200 });
   });
 });
 
@@ -245,20 +245,18 @@ app.post("/api/login", (req, res) => {
   db.query(query, [email], async (err, data) => {
     if (err) throw err;
     if (data.length === 0) {
-      return res.status(201).json({ message: "Invalid email or password" });
+      return res.status(201).json({ message: "Invalid email or password !" });
     }
     const user = data[0];
     if (!user.password) {
-      return res.status(201).json({ message: "Invalid email or password" });
+      return res.status(201).json({ message: "Invalid email or password !" });
     }
     if (!user.verified) {
-      return res
-        .status(201)
-        .json({ message: "Please verify your email first" });
+      return res.status(201).json({ message: "Please verify your email !" });
     }
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(201).json({ message: "Invalid email or password" });
+      return res.status(201).json({ message: "Invalid email or password !" });
     }
     const accessToken = jwt.sign({ email: user.email }, "secret");
     return res.status(200).json({
@@ -279,12 +277,12 @@ app.patch("/api/email_varified/:email/varify/:token", async (req, res) => {
   db.query(query, [email, token], async (err, data) => {
     if (err) {
       console.error(err);
-      return res.status(500).json({ msg: "Error verifying email" });
+      return res.status(500).json({ msg: "Error verifying email !" });
     }
 
     // If there's no match, return an error
     if (data.length === 0) {
-      return res.status(404).json({ msg: "Invalid email or token" });
+      return res.status(404).json({ msg: "Invalid email or token !" });
     }
 
     // Update the verified field to true
@@ -294,11 +292,11 @@ app.patch("/api/email_varified/:email/varify/:token", async (req, res) => {
         console.error(err);
         return res
           .status(500)
-          .json({ msg: "Error updating verification status" });
+          .json({ msg: "Error updating verification status !" });
       }
       return res
         .status(200)
-        .json({ msg: "Email verified successfully", status: 200 });
+        .json({ msg: "Email verified successfully !", status: 200 });
     });
   });
 });
@@ -318,11 +316,11 @@ app.post("/api/register", async (req, res) => {
 
   const userWithEmail = await getByEmail(email);
   if (userWithEmail) {
-    return res.status(201).json({ msg: "Email already exists" });
+    return res.status(201).json({ msg: "Email already exists !" });
   }
   const userWithPhone = await getByPhone(contact_number);
   if (userWithPhone) {
-    return res.status(201).json({ msg: "Phone already exists" });
+    return res.status(201).json({ msg: "Phone already exists !" });
   }
 
   const query = `INSERT INTO employees (firstName, lastName, address, contact_number, email, designation, department, gender,password) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
@@ -355,7 +353,7 @@ app.post("/api/register", async (req, res) => {
     });
 
     return res.status(200).json({
-      msg: "Email has been sent on your email check it out ",
+      msg: "Email has been sent on your email check it out ! ",
       data: data,
       status: 200,
     });
