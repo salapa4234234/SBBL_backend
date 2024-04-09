@@ -93,7 +93,7 @@ app.patch("/api/forget_password", (req, res) => {
     let subject = "Forget Password !";
     const randomString = "kdjfalksd";
     let content = `
-    <p>Please <a href="https://phonebooksalapabikasbank.netlify.app/forget-password/${email}">Forget Passowrd</a></p>
+    <p>Please <a href="https://phonebook.salapabikasbank.com.np/forget-password/${email}">Forget Passowrd</a></p>
     `;
     sendMail(email, subject, content);
     return res
@@ -341,7 +341,7 @@ app.post("/api/register", async (req, res) => {
     let subject = "Email verification !";
     const randomString = "kdjfalksd";
     let content = `
-    <p>Hi ${firstName},please <a href="https://phonebooksalapabikasbank.netlify.app/email-verification/${email}/varify/${randomString}">Verify</a> your email}</p>
+    <p>Hi ${firstName},please <a href="https://phonebook.salapabikasbank.com.np/email-verification/${email}/varify/${randomString}">Verify</a> your email}</p>
     `;
     sendMail(email, subject, content);
     const query = "UPDATE employees SET token=? WHERE email=?";
