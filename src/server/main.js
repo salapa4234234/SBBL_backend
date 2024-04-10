@@ -23,6 +23,7 @@ function verifyToken(req, res, next) {
       return res.status(500).json({ msg: "Token is not valid !" });
     }
     req.user = decoded;
+    res.header("Access-Control-Allow-Origin", "*");
     next();
   });
 }
