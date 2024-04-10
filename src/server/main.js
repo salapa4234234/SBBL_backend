@@ -9,8 +9,11 @@ import { sendMail } from "./helpers/mailSend.js";
 // Create Express app
 const app = express();
 app.use(express.json());
-app.use(cors());
-
+app.use(
+  cors({
+    origin: "https://phonebook.salapabikasbank.com.np",
+  })
+);
 //middeware
 
 function verifyToken(req, res, next) {
