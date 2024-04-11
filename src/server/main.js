@@ -12,6 +12,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: "https://phonebook.salapabikasbank.com.np",
+    optionsSuccessStatus: 200,
   })
 );
 //middeware
@@ -357,7 +358,7 @@ app.post("/api/register", async (req, res) => {
     let subject = "Email verification !";
     const randomString = "kdjfalksd";
     let content = `
-    <p>Hi ${firstName},please <a href="https://phonebook.salapabikasbank.com.np/email-verification/${email}/varify/${randomString}">Verify</a> your email}</p>
+    <p>Hi ${firstName},please <a href="https://phonebook.salapabikasbank.com.np/email-verification/${email}/varify/${randomString}">Verify</a> your email!</p>
     `;
     sendMail(email, subject, content);
     const query = "UPDATE employees SET token=? WHERE email=?";
