@@ -5,6 +5,7 @@ export const db = mysql.createConnection({
   user: "sql8697335",
   password: "gHzMKWPAux",
   database: "sql8697335",
+  connectTimeout: 15000,
 });
 
 db.connect((err) => {
